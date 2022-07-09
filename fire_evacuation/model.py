@@ -10,7 +10,7 @@ from mesa.datacollection import DataCollector
 from mesa.space import Coordinate, MultiGrid
 from mesa.time import RandomActivation
 
-from agent import Human, Wall , EmergencyExit, Furniture, Water, Door, Elevation
+from agent import Human, Wall , EmergencyExit, Furniture, Water, Door
 
 
 class FloodEvacuation(Model):
@@ -18,7 +18,7 @@ class FloodEvacuation(Model):
     MAX_HEALTH = 1
 
     MIN_SPEED = 1
-    MAX_SPEED = 2
+    MAX_SPEED = 8
 
     MIN_NERVOUSNESS = 1
     MAX_NERVOUSNESS = 10
@@ -206,7 +206,7 @@ class FloodEvacuation(Model):
 
                 experience = np.random.randint(self.MIN_EXPERIENCE, self.MAX_EXPERIENCE)
 
-                belief_distribution = [0.9, 0.1]  # [Believes, Doesn't Believe]
+                belief_distribution = [0.1, 0.9]  # [Believes, Doesn't Believe]
                 believes_alarm = np.random.choice([True, False], p=belief_distribution) #p is the probability of each element in array
 
                 human = Human(
@@ -220,7 +220,7 @@ class FloodEvacuation(Model):
                     believes_alarm=believes_alarm,
                     model=self,
                 )
-
+                print(human.vision)
                 self.grid.place_agent(human, pos)
                 self.schedule.add(human)
             else:

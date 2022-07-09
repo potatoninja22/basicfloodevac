@@ -109,14 +109,14 @@ floor_plans = [
 # Specify the parameters changeable by the user, in the web interface
 model_params = {
     "floor_plan_file": UserSettableParameter(
-        "choice", "Floorplan", value=floor_plans[0], choices=floor_plans
+        "choice", "Floorplan", value=floor_plans[1], choices=floor_plans
     ),
-    "human_count": UserSettableParameter("number", "Number Of Human Agents", value=10),
+    "human_count": UserSettableParameter("number", "Number Of Human Agents", value=25),
     "collaboration_percentage": UserSettableParameter(
-        "slider", "Percentage Collaborating", value=50, min_value=0, max_value=100, step=10
+        "slider", "Percentage Collaborating", value=60, min_value=0, max_value=100, step=10
     ),
     "fire_probability": UserSettableParameter(
-        "slider", "Probability of Flood", value=0.1, min_value=0, max_value=1, step=0.01
+        "slider", "Probability of Flood", value=0.8, min_value=0, max_value=1, step=0.01
     ),
     "random_spawn": UserSettableParameter(
         "checkbox", "Spawn Agents at Random Locations", value=True

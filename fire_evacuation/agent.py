@@ -11,7 +11,7 @@ from utils import get_random_id
 
 def get_line(start, end):
     """
-    Implementaiton of Bresenham's Line Algorithm
+    Implementation of Bresenham's Line Algorithm
     Returns a list of tuple coordinates from starting tuple to end tuple (and including them)
     """
     # Break down start and end tuples
@@ -77,7 +77,6 @@ class FloorObject(Agent):
         self,
         pos: Coordinate,
         traversable: bool,
-        visibility = 2,
         model = None,
     ):
         rand_id = get_random_id()
@@ -91,7 +90,7 @@ class FloorObject(Agent):
 class Sight(FloorObject):
     def __init__(self, pos, model):
         super().__init__(
-            pos, traversable=True, visibility=-1, model=model
+            pos, traversable=True,model=model
         )
 
     def get_position(self):
@@ -105,7 +104,7 @@ class Door(FloorObject):
 class EmergencyExit(FloorObject):
     def __init__(self, pos, model):
         super().__init__(
-            pos, traversable=True,visibility=6,model=model
+            pos, traversable=True,model=model
         )
 
 class Wall(FloorObject):
@@ -115,12 +114,6 @@ class Wall(FloorObject):
 class Furniture(FloorObject):
     def __init__(self, pos, model):
         super().__init__(pos, traversable=False, model=model)
-
-class Elevation(FloorObject):
-    def __init__(self,pos,model,elevation):
-        super().__init__(pos,traversable=True,model=model)
-        self.pos = pos
-        self.elevation = elevation
 
 class DeadHuman(FloorObject):
     def __init__(self,pos,model):
@@ -138,7 +131,6 @@ class Water(FloorObject):
         super().__init__(
             pos,
             traversable=True,
-            visibility=20,
             model=model,
         )
 
@@ -196,7 +188,7 @@ class Human(Agent):
     MAX_EXPERIENCE = 10
 
     MIN_SPEED = 0.0
-    MAX_SPEED = 2.0
+    MAX_SPEED = 8.0
 
     MIN_KNOWLEDGE = 0
     MAX_KNOWLEDGE = 1
@@ -206,7 +198,7 @@ class Human(Agent):
     # Shock modifiers when encountering certain objects per object, per step
     DEFAULT_SHOCK_MODIFIER = -0.1  # The default amount the shock value will change per step
     SHOCK_MODIFIER_DEAD_HUMAN = 1.0
-    SHOCK_MODIFIER_WATER = 0.2
+    SHOCK_MODIFIER_WATER = 0.8   #changing the shock modifier for testing
     SHOCK_MODIFIER_AFFECTED_HUMAN = 0.1
 
     # The value the panic score must reach for an agent to start panic behaviour
@@ -214,7 +206,7 @@ class Human(Agent):
 
     HEALTH_MODIFIER_WATER = 0.2
 
-    SPEED_MODIFIER_WATER = 2  #Think about this, depending on elevation diff speed modifiers
+    SPEED_MODIFIER_WATER = 0.3  #Think about this, depending on elevation diff speed modifiers
 
     # When the health value drops below this value, the agent will being to slow down
     SLOWDOWN_THRESHOLD = 0.5
@@ -240,7 +232,6 @@ class Human(Agent):
         self.traversable = False
 
         self.pos = pos
-        self.visibility = 2
         self.health = health
         self.mobility: Human.Mobility = Human.Mobility.NORMAL
         self.shock: int = self.MIN_SHOCK
@@ -322,6 +313,8 @@ class Human(Agent):
                                 # We hit a wall, reject rest of path and move to next
                                 blocked = True
                                 break
+                            if not isinstance(obj,Sight):
+                                visible_contents.append(obj)
 
                         if blocked:
                             checked_tiles.update(
@@ -363,15 +356,18 @@ class Human(Agent):
 
 
     def attempt_exit_plan(self):
+        print(f"agent with id {self.unique_id} is attempting to exit")
         self.planned_target = (None, None)
         emergency_exits = set()
 
+        print(self.known_tiles)
         for pos, agents in self.known_tiles.items():
             for agent in agents:
                 if isinstance(agent, EmergencyExit):
                     emergency_exits.add((agent, pos))
 
         if len(emergency_exits) > 0:
+            print("emergency_exits found!")
             if len(emergency_exits) > 1:  # If there is more than one exit known
                 best_distance = None
                 for exit, exit_pos in emergency_exits:
@@ -388,6 +384,7 @@ class Human(Agent):
             # print("Agent found a fire escape!", self.planned_target)
         else:  # If there's a fire and no fire-escape in sight, try to head for an unvisited door, if no door in sight, move randomly (for now)
             found_door = False
+            print(self.visible_tiles)
             for pos, contents in self.visible_tiles:
                 for agent in contents:
                     if isinstance(agent, Door):
@@ -400,6 +397,7 @@ class Human(Agent):
 
             # Still didn't find a planned_target, so get a random unvisited target
             if not self.planned_target[1]:
+                print("getting random target to move")
                 self.get_random_target(allow_visited=False)
 
     def get_panic_score(self):
