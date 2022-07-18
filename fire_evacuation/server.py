@@ -56,7 +56,7 @@ def fire_evacuation_portrayal(agent):
         portrayal["scale"] = 1
         portrayal["Layer"] = 1
     elif type(agent) is Furniture:
-        portrayal["Shape"] = "resources/furniture.png"
+        portrayal["Shape"] = "resources/building.png"
         portrayal["scale"] = 1
         portrayal["Layer"] = 1
     elif type(agent) is DeadHuman:
@@ -109,7 +109,7 @@ floor_plans = [
 # Specify the parameters changeable by the user, in the web interface
 model_params = {
     "floor_plan_file": UserSettableParameter(
-        "choice", "Floorplan", value=floor_plans[1], choices=floor_plans
+        "choice", "Floorplan", value=floor_plans[2], choices=floor_plans
     ),
     "human_count": UserSettableParameter("number", "Number Of Human Agents", value=25),
     "collaboration_percentage": UserSettableParameter(
@@ -119,7 +119,7 @@ model_params = {
         "slider", "Probability of Flood", value=0.8, min_value=0, max_value=1, step=0.01
     ),
     "random_spawn": UserSettableParameter(
-        "checkbox", "Spawn Agents at Random Locations", value=True
+        "checkbox", "Spawn Agents at Random Locations", value=False
     ),
     "visualise_vision": UserSettableParameter("checkbox", "Show Agent Vision", value=False),
     "save_plots": UserSettableParameter("checkbox", "Save plots to file", value=True),

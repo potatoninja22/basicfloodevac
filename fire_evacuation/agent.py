@@ -112,7 +112,7 @@ class Wall(FloorObject):
 
 class Furniture(FloorObject):
     def __init__(self, pos, model):
-        super().__init__(pos, traversable=False, model=model)
+        super().__init__(pos, traversable=True, model=model)
 
 class DeadHuman(FloorObject):
     def __init__(self,pos,model):
@@ -355,7 +355,7 @@ class Human(Agent):
 
 
     def attempt_exit_plan(self):
-        # print(f"agent with id {self.unique_id} is attempting to exit")
+        print(f"agent with id {self.unique_id} is attempting to exit")
         self.planned_target = (None, None)
         emergency_exits = set()
 
@@ -571,7 +571,7 @@ class Human(Agent):
                         )
                         # Plan to carry the agent
                         self.planned_action = Human.Action.PHYSICAL_SUPPORT
-                        # print("Agent planned physical collaboration at", location)
+                        print(f"Agent {self.unique_id} planned physical collaboration at", location)
                         break
                     elif (
                         agent.get_mobility() == Human.Mobility.PANIC
@@ -585,7 +585,7 @@ class Human(Agent):
                         )
                         # Plan to do morale collaboration with the agent
                         self.planned_action = Human.Action.MORALE_SUPPORT
-                        # print("Agent planned morale collaboration at", location)
+                        print("Agent planned morale collaboration at", location)
                         break
                 elif isinstance(agent, EmergencyExit):
                     # Verbal collaboration
@@ -739,6 +739,7 @@ class Human(Agent):
         ):
             self.planned_target = (None, None)
             self.planned_action = None
+            print(f"{self.unique_id} dropped the physical collaboration idea")
         elif self.planned_action == Human.Action.RETREAT:
             return
         else:  # Can no longer perform the action

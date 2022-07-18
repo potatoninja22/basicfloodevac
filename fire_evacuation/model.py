@@ -1,3 +1,4 @@
+from math import floor
 import os
 import numpy as np
 import networkx as nx
@@ -76,6 +77,8 @@ class FloodEvacuation(Model):
         self.random_spawn = random_spawn
         self.spawn_pos_list: list[Coordinate] = []
 
+        self.river_water: dict[Coordinate,Water] = {}
+
         # Load floorplan objects
         for (x, y), value in np.ndenumerate(floorplan):
             pos: Coordinate = (x, y)
@@ -92,7 +95,7 @@ class FloodEvacuation(Model):
                 self.fire_exits[pos] = floor_object
                 # Add fire exits to doors as well, since, well, they are
                 self.doors[pos] = floor_object
-            elif value == "F":
+            elif value == "B":
                 floor_object = Furniture(pos, self)
                 self.furniture[pos] = floor_object
             elif value == "D":
@@ -100,6 +103,10 @@ class FloodEvacuation(Model):
                 self.doors[pos] = floor_object
             elif value == "S":
                 self.spawn_pos_list.append(pos)
+            elif value == "R":
+                floor_object = Water(pos, self)
+                self.river_water[pos] = floor_object
+                self.fire_started = True
 
             if floor_object:
                 self.grid.place_agent(floor_object, pos)
@@ -158,7 +165,8 @@ class FloodEvacuation(Model):
             if self.random_spawn:  # Place human agents randomly
                 pos = self.grid.find_empty()
             else:  # Place human agents at specified spawn locations
-                pos = np.random.choice(self.spawn_pos_list)
+                n = len(self.spawn_pos_list)
+                pos = self.spawn_pos_list[random.randint(0,n-1)]
 
             if pos:
                 #Create a random human
@@ -272,28 +280,26 @@ class FloodEvacuation(Model):
         plt.close(fig)
 
     # Starts a fire at a random piece of furniture with file_probability chance
-    def start_fire(self):
-        rand = np.random.random()
-        if rand < self.fire_probability:
-            # fire_furniture: Furniture = np.random.choice(list(self.furniture.values()))
-            # pos = fire_furniture.pos
-            while not self.fire_started:
-                x = random.randrange(2,self.width-2)
-                y = random.randrange(2,self.height-2)
-                pos = x,y
-                contents = self.grid.get_cell_list_contents(pos)
-                flag = True
-                for agent in contents:
-                    if isinstance(agent,Furniture) or isinstance(agent,Door):
-                        flag = False
-                        break
-                if flag:
-                    water = Water(pos, self)
-                    self.grid.place_agent(water, pos)
-                    self.schedule.add(water)
+    # def start_fire(self):
+    #     rand = np.random.random()
+    #     if rand < self.fire_probability:
+    #         while not self.fire_started:
+    #             x = random.randrange(2,self.width-2)
+    #             y = random.randrange(2,self.height-2)
+    #             pos = x,y
+    #             contents = self.grid.get_cell_list_contents(pos)
+    #             flag = True
+    #             for agent in contents:
+    #                 if isinstance(agent,Furniture) or isinstance(agent,Door):
+    #                     flag = False
+    #                     break
+    #             if flag:
+    #                 water = Water(pos, self)
+    #                 self.grid.place_agent(water, pos)
+    #                 self.schedule.add(water)
 
-                    self.fire_started = True
-                    print(f"Flood started at position {pos}")
+    #                 self.fire_started = True
+    #                 print(f"Flood started at position {pos}")
 
     def step(self):
         """
@@ -303,8 +309,8 @@ class FloodEvacuation(Model):
         self.schedule.step()
 
         # If there's no fire yet, attempt to start one
-        if not self.fire_started:
-            self.start_fire()
+        # if not self.fire_started:
+        #     self.start_fire()
 
         self.datacollector.collect(self)
 
