@@ -83,7 +83,6 @@ class FloorObject(Agent):
         super().__init__(rand_id,model)
         self.pos = pos
         self.traversable = traversable
-
     def get_position(self):
         return self.pos
 
@@ -356,18 +355,17 @@ class Human(Agent):
 
 
     def attempt_exit_plan(self):
-        print(f"agent with id {self.unique_id} is attempting to exit")
+        # print(f"agent with id {self.unique_id} is attempting to exit")
         self.planned_target = (None, None)
         emergency_exits = set()
 
-        print(self.known_tiles)
+        #print(self.known_tiles)
         for pos, agents in self.known_tiles.items():
             for agent in agents:
                 if isinstance(agent, EmergencyExit):
                     emergency_exits.add((agent, pos))
 
         if len(emergency_exits) > 0:
-            print("emergency_exits found!")
             if len(emergency_exits) > 1:  # If there is more than one exit known
                 best_distance = None
                 for exit, exit_pos in emergency_exits:
@@ -381,10 +379,10 @@ class Human(Agent):
             else:
                 self.planned_target = emergency_exits.pop()
 
-            # print("Agent found a fire escape!", self.planned_target)
-        else:  # If there's a fire and no fire-escape in sight, try to head for an unvisited door, if no door in sight, move randomly (for now)
+            print(f"Agent {self.unique_id} found an emergency exit.", self.planned_target)
+        else:  # If there's a flood and no emergency-exit in sight, try to head for an unvisited door, if no door in sight, move randomly (for now)
             found_door = False
-            print(self.visible_tiles)
+            #print(self.visible_tiles)
             for pos, contents in self.visible_tiles:
                 for agent in contents:
                     if isinstance(agent, Door):
@@ -401,13 +399,13 @@ class Human(Agent):
                 self.get_random_target(allow_visited=False)
 
     def get_panic_score(self):
-        health_component = 1 / np.exp(self.health / self.nervousness)
+        health_component = 1 / np.exp(self.health / (self.nervousness*self.MAX_HEALTH))
         experience_component = 1 / np.exp(self.experience / self.nervousness)
 
         # Calculate the mean of the components
         panic_score = (health_component + experience_component + self.shock) / 3
 
-        # print("Panic score:", panic_score, "Health Score:", health_component, "Experience Score:", experience_component, "Shock score:", self.shock)
+        print("Panic score:", panic_score, "Health Score:", health_component, "Experience Score:", experience_component, "Shock score:", self.shock)
 
         return panic_score
 
@@ -506,31 +504,31 @@ class Human(Agent):
             self.knowledge = self.knowledge + new_knowledge_percentage
             # print("Current knowledge:", self.knowledge)
 
-    def get_collaboration_cost(self):
-        panic_score = self.get_panic_score()
-        total_count = (
-            self.verbal_collaboration_count
-            + self.morale_collaboration_count
-            + self.physical_collaboration_count
-        )
+    # def get_collaboration_cost(self):
+    #     panic_score = self.get_panic_score()
+    #     total_count = (
+    #         self.verbal_collaboration_count
+    #         + self.morale_collaboration_count
+    #         + self.physical_collaboration_count
+    #     )
 
-        collaboration_component = 1 / np.exp(
-            1 / (total_count + 1)
-        )  # The more time this agent has collaborated, the higher the score will become
-        collaboration_cost = (collaboration_component + panic_score) / 2
-        # print("Collaboration cost:", collaboration_cost, "Component:", collaboration_component, "Panic component:", panic_score)
+    #     collaboration_component = 1 / np.exp(
+    #         1 / (total_count + 1)
+    #     )  # The more time this agent has collaborated, the higher the score will become
+    #     collaboration_cost = (collaboration_component + panic_score) / 2
+    #     # print("Collaboration cost:", collaboration_cost, "Component:", collaboration_component, "Panic component:", panic_score)
 
-        return collaboration_cost
+    #     return collaboration_cost
 
-    def test_collaboration(self) -> bool:
-        collaboration_cost = self.get_collaboration_cost()
+    # def test_collaboration(self) -> bool:
+    #     collaboration_cost = self.get_collaboration_cost()
 
-        rand = np.random.random()
-        # Collaboration if rand is GREATER than our collaboration_cost (Higher collaboration_cost means less likely to collaborate)
-        if rand > collaboration_cost:
-            return True
-        else:
-            return False
+    #     rand = np.random.random()
+    #     # Collaboration if rand is GREATER than our collaboration_cost (Higher collaboration_cost means less likely to collaborate)
+    #     if rand > collaboration_cost:
+    #         return True
+    #     else:
+    #         return False
 
     def verbal_collaboration(self, target_agent: Self, target_location: Coordinate):
         success = False
@@ -556,42 +554,42 @@ class Human(Agent):
         if self.carrying:
             return
 
-        if self.test_collaboration():
-            for location, visible_agents in self.visible_tiles:
-                if self.planned_action:
-                    break
+        # if self.test_collaboration():
+        for location, visible_agents in self.visible_tiles:
+            if self.planned_action:
+                break
 
-                for agent in visible_agents:
-                    if isinstance(agent, Human) and not self.planned_action:
-                        if agent.get_mobility() == Human.Mobility.INCAPACITATED:
-                            # If the agent is incapacitated, help them
-                            # Physical collaboration
-                            # Plan to move toward the target
-                            self.planned_target = (
-                                agent,
-                                location,
-                            )
-                            # Plan to carry the agent
-                            self.planned_action = Human.Action.PHYSICAL_SUPPORT
-                            # print("Agent planned physical collaboration at", location)
-                            break
-                        elif (
-                            agent.get_mobility() == Human.Mobility.PANIC
-                            and not self.planned_action
-                        ):
-                            # Morale collaboration
-                            # Plan to move toward the target
-                            self.planned_target = (
-                                agent,
-                                location,
-                            )
-                            # Plan to do morale collaboration with the agent
-                            self.planned_action = Human.Action.MORALE_SUPPORT
-                            # print("Agent planned morale collaboration at", location)
-                            break
-                    elif isinstance(agent, EmergencyExit):
-                        # Verbal collaboration
-                        self.verbal_collaboration(agent, location)
+            for agent in visible_agents:
+                if isinstance(agent, Human) and not self.planned_action:
+                    if agent.get_mobility() == Human.Mobility.INCAPACITATED:
+                        # If the agent is incapacitated, help them
+                        # Physical collaboration
+                        # Plan to move toward the target
+                        self.planned_target = (
+                            agent,
+                            location,
+                        )
+                        # Plan to carry the agent
+                        self.planned_action = Human.Action.PHYSICAL_SUPPORT
+                        # print("Agent planned physical collaboration at", location)
+                        break
+                    elif (
+                        agent.get_mobility() == Human.Mobility.PANIC
+                        and not self.planned_action
+                    ):
+                        # Morale collaboration
+                        # Plan to move toward the target
+                        self.planned_target = (
+                            agent,
+                            location,
+                        )
+                        # Plan to do morale collaboration with the agent
+                        self.planned_action = Human.Action.MORALE_SUPPORT
+                        # print("Agent planned morale collaboration at", location)
+                        break
+                elif isinstance(agent, EmergencyExit):
+                    # Verbal collaboration
+                    self.verbal_collaboration(agent, location)
 
 
     def get_next_location(self, path):

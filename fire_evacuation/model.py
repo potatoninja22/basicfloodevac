@@ -14,8 +14,8 @@ from agent import Human, Wall , EmergencyExit, Furniture, Water, Door
 
 
 class FloodEvacuation(Model):
-    MIN_HEALTH = 0.75
-    MAX_HEALTH = 1
+    MIN_HEALTH = 4
+    MAX_HEALTH = 7
 
     MIN_SPEED = 1
     MAX_SPEED = 8
@@ -162,7 +162,8 @@ class FloodEvacuation(Model):
 
             if pos:
                 #Create a random human
-                health = np.random.randint(self.MIN_HEALTH * 100, self.MAX_HEALTH * 100) / 100
+                #health = np.random.randint(self.MIN_HEALTH * 100, self.MAX_HEALTH * 100) / 100
+                health = np.random.randint(self.MIN_HEALTH,self.MAX_HEALTH)
                 speed = np.random.randint(self.MIN_SPEED, self.MAX_SPEED)
                 # speed = self.MAX_SPEED
 
