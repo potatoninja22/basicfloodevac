@@ -112,7 +112,11 @@ class Wall(FloorObject):
 
 class Furniture(FloorObject):
     def __init__(self, pos, model):
-        super().__init__(pos, traversable=True, model=model)
+        super().__init__(pos, traversable=False, model=model)
+
+class Tree(FloorObject):
+    def __init__(self,pos,model):
+        super().__init__(pos,traversable=False,model=model)
 
 class DeadHuman(FloorObject):
     def __init__(self,pos,model):
@@ -201,7 +205,7 @@ class Human(Agent):
     SHOCK_MODIFIER_AFFECTED_HUMAN = 0.1
 
     # The value the panic score must reach for an agent to start panic behaviour
-    PANIC_THRESHOLD = 0.8
+    PANIC_THRESHOLD = 0.9             #modifying the panic threshold to 0.9
 
     HEALTH_MODIFIER_WATER = 0.2
 
@@ -399,6 +403,20 @@ class Human(Agent):
                 self.get_random_target(allow_visited=False)
 
     def get_panic_score(self):
+        # adding a new component to panic, if there is water around person he will definitely panic
+        neighborhood = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=True,radius=1)
+        flag = False 
+        for cell in neighborhood:
+            cont = self.model.grid.get_cell_list_contents((cell[0],cell[1]))
+            for agent in cont:
+                if isinstance(agent,Water):
+                    flag = True
+                    break
+        if flag == True:
+            panic_score = 0.9
+            return panic_score
+        
+
         health_component = 1 / np.exp(self.health / (self.nervousness*self.MAX_HEALTH))
         experience_component = 1 / np.exp(self.experience / self.nervousness)
 
@@ -461,7 +479,7 @@ class Human(Agent):
                     )
 
         if not self.believes_alarm and shock_modifier != self.DEFAULT_SHOCK_MODIFIER:
-            print("Agent now believes the fire is real!")
+            print(f"Agent {self.unique_id} now believes the flood is real!")
             self.believes_alarm = True
 
         self.shock += shock_modifier
@@ -481,9 +499,9 @@ class Human(Agent):
 
             # when an agent panics, clear known tiles
             # this represents the agent forgetting all logical information about their surroundings,
-            # and having ot rebuild it once they stop panicking
-            self.known_tiles = {}
-            self.knowledge = 0
+            # and having to rebuild it once they stop panicking
+            # self.known_tiles = {}                    have commented this to let the agent remember the surroundings
+            # self.knowledge = 0
         elif panic_score < self.PANIC_THRESHOLD and self.mobility == Human.Mobility.PANIC:
             print("Agent stopped panicking! Score:", panic_score, "Shock:", self.shock)
             self.mobility = Human.Mobility.NORMAL
@@ -560,6 +578,8 @@ class Human(Agent):
                 break
 
             for agent in visible_agents:
+                if self.planned_action:
+                    break
                 if isinstance(agent, Human) and not self.planned_action:
                     if agent.get_mobility() == Human.Mobility.INCAPACITATED:
                         # If the agent is incapacitated, help them
