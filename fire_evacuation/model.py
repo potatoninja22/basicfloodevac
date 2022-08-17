@@ -11,7 +11,7 @@ from mesa.datacollection import DataCollector
 from mesa.space import Coordinate, MultiGrid
 from mesa.time import RandomActivation
 
-from agent import Human, Wall ,EmergencyExit, Furniture, Water, Door, Tree, Bridge
+from agent import Human, Wall ,EmergencyExit, Furniture, Water, Door, Tree, Bridge,Tile
 
 
 class FloodEvacuation(Model):
@@ -115,6 +115,12 @@ class FloodEvacuation(Model):
                 floor_object = Water(pos, self)
                 self.river_water[pos] = floor_object
                 self.fire_started = True
+                floor_object2 = Tile(pos,6,self)
+                self.grid.place_agent(floor_object2,pos)
+                self.schedule.add(floor_object2)
+            elif value == "_":
+                num = random.randint(0,6)
+                floor_object = Tile(pos,num,self)
 
             if floor_object:
                 self.grid.place_agent(floor_object, pos)

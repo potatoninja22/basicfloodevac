@@ -126,6 +126,11 @@ class DeadHuman(FloorObject):
     def __init__(self,pos,model):
         super().__init__(pos,traversable=True,model=model)
 
+class Tile(FloorObject):
+    def __init__(self,pos,elevation,model):
+        super().__init__(pos,traversable=True,model=model)
+        self.elevation = elevation
+
 
 
 """
@@ -140,23 +145,40 @@ class Water(FloorObject):
             traversable=True,
             model=model,
         )
+        self.elevation = 6
 
     def step(self):
         dont_spread = [Water,Furniture,Wall,Bridge]
         neighborhood = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False,radius=1)
+        own_contents = self.model.grid.get_cell_list_contents(self.pos)
+        own_elevation = 0 
+        
+        
+        for agent in own_contents:
+            if isinstance(agent,Tile):
+                own_elevation = agent.elevation
+                
         for cell in neighborhood:
-            cont = self.model.grid.get_cell_list_contents((cell[0],cell[1]))
+            cont = self.model.grid.get_cell_list_contents((cell[0],cell[1])) #x and y coordinates of the neighbouring cells, get contents of neighbouring cells
             flag = False
             for agent in cont:
                 for i in dont_spread:
                     if isinstance(agent,i):
                         flag = True
                         break
+                    
             if flag == False:
-                water = Water((cell[0],cell[1]),self.model)
-                water.unique_id = get_random_id()
-                self.model.schedule.add(water)
-                self.model.grid.place_agent(water,(cell[0],cell[1]))
+                neighbour_elevation = 0
+                for agent in cont:
+                    if isinstance(agent,Tile):
+                        neighbour_elevation = agent.elevation
+                        
+                if neighbour_elevation <= own_elevation:  
+                        
+                    water = Water((cell[0],cell[1]),self.model)
+                    water.unique_id = get_random_id()
+                    self.model.schedule.add(water)
+                    self.model.grid.place_agent(water,(cell[0],cell[1]))
 
     def get_position(self):
         return super().get_position()
