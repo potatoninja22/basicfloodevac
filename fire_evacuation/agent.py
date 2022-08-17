@@ -118,6 +118,10 @@ class Tree(FloorObject):
     def __init__(self,pos,model):
         super().__init__(pos,traversable=False,model=model)
 
+class Bridge(FloorObject):
+    def __init__(self,pos,model):
+        super().__init__(pos,traversable=True,model=model)
+
 class DeadHuman(FloorObject):
     def __init__(self,pos,model):
         super().__init__(pos,traversable=True,model=model)
@@ -138,14 +142,16 @@ class Water(FloorObject):
         )
 
     def step(self):
+        dont_spread = [Water,Furniture,Wall,Bridge]
         neighborhood = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False,radius=1)
         for cell in neighborhood:
             cont = self.model.grid.get_cell_list_contents((cell[0],cell[1]))
             flag = False
             for agent in cont:
-                if isinstance(agent,Water) or isinstance(agent,Furniture) or isinstance(agent,Wall):
-                    flag = True
-                    break
+                for i in dont_spread:
+                    if isinstance(agent,i):
+                        flag = True
+                        break
             if flag == False:
                 water = Water((cell[0],cell[1]),self.model)
                 water.unique_id = get_random_id()

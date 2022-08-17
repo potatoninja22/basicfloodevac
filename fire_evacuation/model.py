@@ -11,7 +11,7 @@ from mesa.datacollection import DataCollector
 from mesa.space import Coordinate, MultiGrid
 from mesa.time import RandomActivation
 
-from agent import Human, Wall , EmergencyExit, Furniture, Water, Door, Tree
+from agent import Human, Wall ,EmergencyExit, Furniture, Water, Door, Tree, Bridge
 
 
 class FloodEvacuation(Model):
@@ -69,6 +69,7 @@ class FloodEvacuation(Model):
         # Used to start a fire at a random furniture location
         self.furniture: dict[Coordinate, Furniture] = {}
         self.trees: dict[Coordinate, Tree] = {}
+        self.bridges: dict[Coordinate, Bridge] = {}
 
         # Used to easily see if a location is a FireExit or Door, since this needs to be done a lot
         self.fire_exits: dict[Coordinate, EmergencyExit] = {}
@@ -102,6 +103,9 @@ class FloodEvacuation(Model):
             elif value == "T":
                 floor_object = Tree(pos,self)
                 self.trees[pos] = floor_object
+            elif value == "b": 
+                floor_object = Bridge(pos, self)
+                self.bridges[pos] = floor_object
             elif value == "D":
                 floor_object = Door(pos, self)
                 self.doors[pos] = floor_object

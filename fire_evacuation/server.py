@@ -5,7 +5,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 
 from model import FloodEvacuation
-from agent import EmergencyExit, Wall, Furniture, Water, Human, Sight, Door, DeadHuman, Tree
+from agent import EmergencyExit, Wall, Furniture, Water, Human, Sight, Door, DeadHuman, Tree, Bridge
 
 
 # Creates a visual portrayal of our model in the browser interface
@@ -39,10 +39,6 @@ def fire_evacuation_portrayal(agent):
         portrayal["Shape"] = "resources/water.png"
         portrayal["scale"] = 1
         portrayal["Layer"] = 3
-    # elif type(agent) is Smoke:
-    #     portrayal["Shape"] = "resources/smoke.png"
-    #     portrayal["scale"] = 1
-    #     portrayal["Layer"] = 2
     elif type(agent) is EmergencyExit:
         portrayal["Shape"] = "resources/fire_exit.png"
         portrayal["scale"] = 1
@@ -61,6 +57,10 @@ def fire_evacuation_portrayal(agent):
         portrayal["Layer"] = 1
     elif type(agent) is Tree:
         portrayal["Shape"] = "resources/tree.png"
+        portrayal["scale"] = 1
+        portrayal["Layer"] = 1
+    elif type(agent) is Bridge:
+        portrayal["Shape"] = "resources/bridge.png"
         portrayal["scale"] = 1
         portrayal["Layer"] = 1
     elif type(agent) is DeadHuman:
